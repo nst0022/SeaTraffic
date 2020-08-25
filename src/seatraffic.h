@@ -23,8 +23,10 @@
 #include <time.h>
 #include <sys/types.h>
 
+#define XPLM302	// nst0022 requires X-Plane 11.50 or later
 #define XPLM200	/* Requires X-Plane 9.0 or later */
 #define XPLM210	/* Uses asynchronous object loading if on v10 */
+
 #include "XPLMDataAccess.h"
 #include "XPLMDisplay.h"
 #include "XPLMGraphics.h"
@@ -33,6 +35,8 @@
 #include "XPLMScenery.h"
 #include "XPLMUtilities.h"
 #include "XPUIGraphics.h"
+#include "XPLMInstance.h"   // nst0022
+#include "XPLMProcessing.h" // nst0022
 
 #if APL
 #  include <OpenGL/gl.h>
@@ -72,11 +76,11 @@
 #define LIBRARY_TOKEN_MAX 8 	/* token size */
 
 /* rendering options */
-#define DO_LOCAL_MAP
-enum
-{
-    menu_idx_local_map
-} menu_idx;
+// #define DO_LOCAL_MAP // nst0022 de-activated
+//enum
+//{
+//    menu_idx_local_map
+//} menu_idx;
 #ifdef DEBUG
 #  define DO_ACTIVE_LIST
 #endif
@@ -162,8 +166,12 @@ typedef struct active_route_t
 #ifdef DO_LOCAL_MAP
     int mapx, mapy;		/* position in local map */
 #endif
+    XPLMInstanceRef * instance_ref; // nst0022 new field
 } active_route_t;
 
+XPLMInstanceRef * instance_ref_wake_big; // nst0022 new field
+XPLMInstanceRef * instance_ref_wake_med; // nst0022 new field
+XPLMInstanceRef * instance_ref_wake_sml; // nst0022 new field
 
 /* globals */
 extern const ship_t ships[ship_kind_count];

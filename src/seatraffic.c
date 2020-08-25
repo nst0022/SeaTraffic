@@ -20,6 +20,8 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason, LPVOID lpReserved)
 /* Globals */
 static char mypath[PATH_MAX], *relpath;
 
+const char * drefs[] = {NULL}; // nst0022
+
 /* Ship types. Order must match ship_kind_t enum */
 const ship_t ships[ship_kind_count] =
 {
@@ -46,11 +48,11 @@ static tile_t current_tile={0,0};
 static int active_n=0;
 static int active_max = ACTIVE_DEFAULT;
 static active_route_t *active_routes = NULL;
-static XPLMMenuID my_menu_id;
-static int do_wakes=0;
-#ifdef DO_LOCAL_MAP
-static int do_local_map=0;
-#endif
+//static XPLMMenuID my_menu_id; // nst0022
+//static int do_wakes=0;        // nst0022
+//#ifdef DO_LOCAL_MAP           // nst0022
+//static int do_local_map=0;
+//#endif
 #ifdef DO_ACTIVE_LIST
 static XPLMWindowID windowId = NULL;
 static int drawtime, drawmax;		/* clock time taken in last main loop [us] */
@@ -282,6 +284,8 @@ static void recalc(void)
 
             a->new_node=1;		/* Tell drawships() to calculate state */
             a->next_time = a->last_time + distanceto(newroute->path[a->last_node], newroute->path[a->last_node+a->direction]) / a->ship->speed;
+
+            a->instance_ref = XPLMCreateInstance(* a->object_ref, drefs); // nst0022
         }
         active_route_sort(&active_routes, active_n);	/* Sort active routes by object name for more efficient drawing */
     }
@@ -432,13 +436,18 @@ static int drawupdate(void)
 
 
 /* XPLMRegisterDrawCallback callback */
-static int drawships(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
+float	drawships(float  in_elapsed_since_last_call,                // nst0022
+                float  in_elapsed_time_since_last_flight_loop,
+                int    in_counter,
+                void * in_refcon)
+//static int drawships(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
 {
+    float dummy = 0.0f; // nst0022
     active_route_t *a;
-    int is_night;
+//    int is_night;     // nst0022 not used anymore
     float now;
     float view_x, view_z;
-    int render_pass;
+//  int render_pass;    // nst0022
 #ifdef DO_ACTIVE_LIST
 # if IBM
     __int64 t1, t2;
@@ -449,7 +458,7 @@ static int drawships(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
 # endif
 #endif
 
-    assert((inPhase==xplm_Phase_Objects) && inIsBefore);
+    //assert((inPhase==xplm_Phase_Objects) && inIsBefore); // nst0022 not needed anymore
 
     /* We're potentially called multiple times per frame:
      * reflections ("sim/graphics/view/world_render_type" == 1), multiple shadows (== 3) and finally normal (== 0).
@@ -463,42 +472,65 @@ static int drawships(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
 #endif
     }
 
-    render_pass = XPLMGetDatai(ref_rentype);
-    is_night = (int) (XPLMGetDataf(ref_night) + 0.67f);
+    //render_pass = XPLMGetDatai(ref_rentype);            // nst0022
+    //is_night = (int) (XPLMGetDataf(ref_night) + 0.67f); // nst0022 not used anymore
     view_x=XPLMGetDataf(ref_view_x);
     view_z=XPLMGetDataf(ref_view_z);
 
-    if (render_pass == 1)		/* reflections */
-    {
-        for (a=active_routes; a; a=a->next)
-            if (*a->object_ref && inreflectrange(a->drawinfo.x - view_x, a->drawinfo.z - view_z))
-                XPLMDrawObjects(*a->object_ref, 1, &(a->drawinfo), is_night, 1);
-        do_wakes = 1;			/* Do wakes on base pass if reflections enabled */
-    }
-    else				/* shadows or base */
+    // nst0022 rendering is not relevant anymore, because we use instancing
+    //if (render_pass == 1)		/* reflections */
+    //{
+    //    for (a=active_routes; a; a=a->next)
+    //        if (*a->object_ref && inreflectrange(a->drawinfo.x - view_x, a->drawinfo.z - view_z))
+    //            XPLMDrawObjects(*a->object_ref, 1, &(a->drawinfo), is_night, 1);
+    //    do_wakes = 1;			/* Do wakes on base pass if reflections enabled */
+    //}
+    //else				/* shadows or base */
     {
         for (a=active_routes; a; a=a->next)
             if (*a->object_ref && indrawrange(a->drawinfo.x - view_x, a->drawinfo.z - view_z))
-                XPLMDrawObjects(*a->object_ref, 1, &(a->drawinfo), is_night, 1);
+            {
+                //XPLMDrawObjects(*a->object_ref, 1, &(a->drawinfo), is_night, 1); // nst0022
+                XPLMInstanceSetPosition(a->instance_ref, &(a->drawinfo), &dummy);  // nst0022
 
-        /* Wakes. Drawn after drawing the ships, so that the ships' hulls are visible through alpha.
-         * Batched together to reduce texture swaps. */
-        if (render_pass == 0 && do_wakes)	/* Only draw wakes in base pass */
-        {
-            do_wakes = 0;
-            // XPLMSetGraphicsState(1, 1, 1,   1, 1,   0, 0);	/* No depth test/write  - doesn't work with XPLMDrawObjects */
-            glEnable(GL_POLYGON_OFFSET_FILL);			/* Do this instead - Yuk! */
-            glPolygonOffset(-2,-2);
-
-            for (a=active_routes; a; a=a->next)
-                if ((a->ship->speed >= WAKE_MINSPEED) &&	/* Only draw wakes for ships going at speed */
-                    (a->last_node+a->direction >= 0) && (a->last_node+a->direction < a->route->pathlen) &&	/* and not lingering */
-                    inwakerange(a->drawinfo.x - view_x, a->drawinfo.z - view_z))				/* and closeish */
+                // nst0022 begin
+                // wakes
+                if ((a->ship->speed >= WAKE_MINSPEED)                             &&	// only show wakes for ships going at speed
+                    (a->last_node + a->direction >= 0)                            &&  // and going forward
+                    (a->last_node + a->direction < a->route->pathlen)             &&	// and not lingering
+                     inwakerange(a->drawinfo.x - view_x, a->drawinfo.z - view_z))			// and closeish
                 {
-                    XPLMDrawObjects(a->ship->semilen >= WAKE_BIG ? wake_big_ref : (a->ship->semilen >= WAKE_MED ? wake_med_ref : wake_sml_ref), 1, &(a->drawinfo), 0, 1);
+                  XPLMInstanceRef instance_ref_wake;
+
+                  if      (a->ship->semilen >= WAKE_BIG) {instance_ref_wake = instance_ref_wake_big;}
+                  else if (a->ship->semilen >= WAKE_MED) {instance_ref_wake = instance_ref_wake_med;}
+                  else                                   {instance_ref_wake = instance_ref_wake_sml;}
+
+                  XPLMInstanceSetPosition(instance_ref_wake, &(a->drawinfo), &dummy);
                 }
-            glDisable(GL_POLYGON_OFFSET_FILL);
-        }
+                // nst0022 end
+            }
+
+        // nst0022 begin
+        ///* Wakes. Drawn after drawing the ships, so that the ships' hulls are visible through alpha.
+        // * Batched together to reduce texture swaps. */
+        //if (render_pass == 0 && do_wakes)	/* Only draw wakes in base pass */
+        //{
+        //    do_wakes = 0;
+        //    // XPLMSetGraphicsState(1, 1, 1,   1, 1,   0, 0);	/* No depth test/write  - doesn't work with XPLMDrawObjects */
+        //    glEnable(GL_POLYGON_OFFSET_FILL);			/* Do this instead - Yuk! */
+        //    glPolygonOffset(-2,-2);
+
+        //    for (a=active_routes; a; a=a->next)
+        //        if ((a->ship->speed >= WAKE_MINSPEED) &&	/* Only draw wakes for ships going at speed */
+        //            (a->last_node+a->direction >= 0) && (a->last_node+a->direction < a->route->pathlen) &&	/* and not lingering */
+        //            inwakerange(a->drawinfo.x - view_x, a->drawinfo.z - view_z))				/* and closeish */
+        //        {
+        //            XPLMDrawObjects(a->ship->semilen >= WAKE_BIG ? wake_big_ref : (a->ship->semilen >= WAKE_MED ? wake_med_ref : wake_sml_ref), 1, &(a->drawinfo), 0, 1);
+        //        }
+        //    glDisable(GL_POLYGON_OFFSET_FILL);
+        // nst0022 end
+        //}
     }
 
 #ifdef DO_ACTIVE_LIST
@@ -512,89 +544,92 @@ static int drawships(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
     if (drawtime>drawmax) { drawmax=drawtime; }
     if (!render_pass) { last_frame = 0; }	/* In DEBUG recalculate while paused for easier debugging / profiling */
 #endif
-    return 1;
+//  return 1; // nst0022
+	return -1.0; // -1.0 executes every 1 frame
 }
 
 
-#ifdef DO_LOCAL_MAP
-/* Work out screen locations in local map */
-static int drawmap3d(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
-{
-    route_list_t *route_list;
-    int i, j;
-
-    if (!do_local_map) { return 1; }
-
-    if (active_n)
-    {
-        GLdouble model[16], proj[16], winX, winY, winZ;
-        GLint view[4];
-        active_route_t *a;
-
-        /* This is slow, but it's only the local map */
-        glGetDoublev(GL_MODELVIEW_MATRIX, model);
-        glGetDoublev(GL_PROJECTION_MATRIX, proj);
-        glGetIntegerv(GL_VIEWPORT, view);
-
-        a=active_routes;
-        while (a!=NULL)
-        {
-            gluProject(a->drawinfo.x, a->drawinfo.y, a->drawinfo.z, model, proj, view, &winX, &winY, &winZ);
-            a->mapx=winX;
-            a->mapy=winY;
-            a=a->next;
-        }
-    }
-
-    XPLMSetGraphicsState(0, 0, 0,   0, 0,   0, 0);
-    glColor3f(0,0,0.25);
-    for (i=current_tile.south-TILE_RANGE; i<=current_tile.south+TILE_RANGE; i++)
-        for (j=current_tile.west-TILE_RANGE; j<=current_tile.west+TILE_RANGE; j++)
-        {
-            route_list=getroutesbytile(i,j);
-            while (route_list)
-            {
-                route_t *route=route_list->route;
-                int k;
-
-                glBegin(GL_LINE_STRIP);
-                for (k=0; k<route->pathlen; k++)
-                {
-                    double x, y, z;
-                    XPLMWorldToLocal(route->path[k].lat, route->path[k].lon, 0.0, &x, &y, &z);
-                    glVertex3f(x,y,z);
-                }
-                glEnd();
-                route_list=route_list->next;
-            }
-        }
-
-    return 1;
-}
-
-
-/* Draw ship icons in local map */
-static int drawmap2d(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
-{
-    int width, height;
-    active_route_t *a;
-    float color[] = { 0, 0, 0.25 };
-
-    if (!do_local_map) { return 1; }
-
-    XPGetElementDefaultDimensions(xpElement_CustomObject, &width, &height, NULL);
-
-    a=active_routes;
-    while (a!=NULL)
-    {
-        XPLMDrawString(color, a->mapx+6, a->mapy-3, a->route->name, NULL, xplmFont_Proportional);
-        XPDrawElement(a->mapx-width/2, a->mapy-height+height/2, a->mapx+width-width/2, a->mapy+height/2, xpElement_CustomObject, 0);
-        a=a->next;
-    }
-    
-    return 1;
-}
-#endif	/* DO_LOCAL_MAP */
+// nst0022 begin
+//#ifdef DO_LOCAL_MAP
+///* Work out screen locations in local map */
+//static int drawmap3d(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
+//{
+//    route_list_t *route_list;
+//    int i, j;
+//
+//    if (!do_local_map) { return 1; }
+//
+//    if (active_n)
+//    {
+//        GLdouble model[16], proj[16], winX, winY, winZ;
+//        GLint view[4];
+//        active_route_t *a;
+//
+//        /* This is slow, but it's only the local map */
+//        glGetDoublev(GL_MODELVIEW_MATRIX, model);
+//        glGetDoublev(GL_PROJECTION_MATRIX, proj);
+//        glGetIntegerv(GL_VIEWPORT, view);
+//
+//        a=active_routes;
+//        while (a!=NULL)
+//        {
+//            gluProject(a->drawinfo.x, a->drawinfo.y, a->drawinfo.z, model, proj, view, &winX, &winY, &winZ);
+//            a->mapx=winX;
+//            a->mapy=winY;
+//            a=a->next;
+//        }
+//    }
+//
+//    XPLMSetGraphicsState(0, 0, 0,   0, 0,   0, 0);
+//    glColor3f(0,0,0.25);
+//    for (i=current_tile.south-TILE_RANGE; i<=current_tile.south+TILE_RANGE; i++)
+//        for (j=current_tile.west-TILE_RANGE; j<=current_tile.west+TILE_RANGE; j++)
+//        {
+//            route_list=getroutesbytile(i,j);
+//            while (route_list)
+//            {
+//                route_t *route=route_list->route;
+//                int k;
+//
+//                glBegin(GL_LINE_STRIP);
+//                for (k=0; k<route->pathlen; k++)
+//                {
+//                    double x, y, z;
+//                    XPLMWorldToLocal(route->path[k].lat, route->path[k].lon, 0.0, &x, &y, &z);
+//                    glVertex3f(x,y,z);
+//                }
+//                glEnd();
+//                route_list=route_list->next;
+//            }
+//        }
+//
+//    return 1;
+//}
+//
+//
+///* Draw ship icons in local map */
+//static int drawmap2d(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon)
+//{
+//    int width, height;
+//    active_route_t *a;
+//    float color[] = { 0, 0, 0.25 };
+//
+//    if (!do_local_map) { return 1; }
+//
+//    XPGetElementDefaultDimensions(xpElement_CustomObject, &width, &height, NULL);
+//
+//    a=active_routes;
+//    while (a!=NULL)
+//    {
+//        XPLMDrawString(color, a->mapx+6, a->mapy-3, a->route->name, NULL, xplmFont_Proportional);
+//        XPDrawElement(a->mapx-width/2, a->mapy-height+height/2, a->mapx+width-width/2, a->mapy+height/2, xpElement_CustomObject, 0);
+//        a=a->next;
+//    }
+//
+//    return 1;
+//}
+//#endif	/* DO_LOCAL_MAP */
+// nst0022 end
 
 
 #ifdef DO_ACTIVE_LIST
@@ -650,28 +685,30 @@ static void drawdebug(XPLMWindowID inWindowID, void *inRefcon)
 #endif	/* DO_ACTIVE_LIST */
 
 
-static void menuhandler(void *inMenuRef, void *inItemRef)
-{
-    switch ((intptr_t) inItemRef)
-    {
-#ifdef DO_LOCAL_MAP
-    case menu_idx_local_map:
-        do_local_map=!do_local_map;
-        XPLMCheckMenuItem(my_menu_id, menu_idx_local_map, do_local_map ? xplm_Menu_Checked : xplm_Menu_Unchecked);
-        if (do_local_map)
-        {
-            XPLMRegisterDrawCallback(drawmap3d, xplm_Phase_LocalMap3D, 0, NULL);
-            XPLMRegisterDrawCallback(drawmap2d, xplm_Phase_LocalMap2D, 0, NULL);
-        }
-        else
-        {
-            XPLMUnregisterDrawCallback(drawmap3d, xplm_Phase_LocalMap3D, 0, NULL);
-            XPLMUnregisterDrawCallback(drawmap2d, xplm_Phase_LocalMap2D, 0, NULL);
-        }
-        break;
-#endif
-    }
-}
+// nst0022 begin
+//static void menuhandler(void *inMenuRef, void *inItemRef)
+//{
+//    switch ((intptr_t) inItemRef)
+//    {
+//#ifdef DO_LOCAL_MAP
+//    case menu_idx_local_map:
+//        do_local_map=!do_local_map;
+//        XPLMCheckMenuItem(my_menu_id, menu_idx_local_map, do_local_map ? xplm_Menu_Checked : xplm_Menu_Unchecked);
+//        if (do_local_map)
+//        {
+//            XPLMRegisterDrawCallback(drawmap3d, xplm_Phase_LocalMap3D, 0, NULL);
+//            XPLMRegisterDrawCallback(drawmap2d, xplm_Phase_LocalMap2D, 0, NULL);
+//        }
+//        else
+//        {
+//            XPLMUnregisterDrawCallback(drawmap3d, xplm_Phase_LocalMap3D, 0, NULL);
+//            XPLMUnregisterDrawCallback(drawmap2d, xplm_Phase_LocalMap2D, 0, NULL);
+//        }
+//        break;
+//#endif
+//    }
+//}
+// nst0022 end
 
 
 #ifdef DEBUG
@@ -751,12 +788,24 @@ PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescript
     strcpy(buffer, relpath);
     strcat(buffer, "wake_big.obj");
     if (!(wake_big_ref=loadobject(buffer))) { return 0; }
+    else // nst0022
+    {
+      instance_ref_wake_big = XPLMCreateInstance(wake_big_ref, drefs);
+    }
     strcpy(buffer, relpath);
     strcat(buffer, "wake_med.obj");
     if (!(wake_med_ref=loadobject(buffer))) { return 0; }
+    else // nst0022
+    {
+      instance_ref_wake_med = XPLMCreateInstance(wake_med_ref, drefs);
+    }
     strcpy(buffer, relpath);
     strcat(buffer, "wake_sml.obj");
     if (!(wake_sml_ref=loadobject(buffer))) { return 0; }
+    else // nst0022
+    {
+      instance_ref_wake_sml = XPLMCreateInstance(wake_sml_ref, drefs);
+    }
 
     if (!readroutes(mypath, outDescription)) { return failinit(outDescription); }	/* read routes.txt */
 
@@ -794,8 +843,9 @@ PLUGIN_API void XPluginStop(void)
 #endif
 }
 
-PLUGIN_API void XPluginEnable(void)
+PLUGIN_API int XPluginEnable(void)  // nst0022
 {
+  return 1;                         // nst0022
 }
 
 PLUGIN_API void XPluginDisable(void)
@@ -806,7 +856,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, long inMessage, void 
 {
     if (!done_init)
     {
-        int my_menu_index;
+        //int my_menu_index; // nst0022
         done_init = 1;
 
         /* Load default ship .objs. Deferred to here so scenery library has been scanned */
@@ -816,21 +866,25 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, long inMessage, void 
         /* Finish setup */
         ref_renopt = XPLMFindDataRef("sim/private/controls/reno/draw_objs_06");	/* v10+ */
         XPLMEnableFeature("XPLM_WANTS_REFLECTIONS", 1);
-        XPLMRegisterDrawCallback(drawships, xplm_Phase_Objects, 1, NULL);		/* Before other 3D objects */
-
-        my_menu_index = XPLMAppendMenuItem(XPLMFindPluginsMenu(), "SeaTraffic", NULL, 1);
-        my_menu_id = XPLMCreateMenu("SeaTraffic", XPLMFindPluginsMenu(), my_menu_index, menuhandler, NULL);
-        /* Menu items must be added in order of menu_idx enum */
-#ifdef DO_LOCAL_MAP
-        /* Setup local map */
-        XPLMAppendMenuItem(my_menu_id, "Draw routes in Local Map", (void*) menu_idx_local_map, 0);
-        XPLMCheckMenuItem(my_menu_id, menu_idx_local_map, do_local_map ? xplm_Menu_Checked : xplm_Menu_Unchecked);
-        if (do_local_map)
-        {
-            XPLMRegisterDrawCallback(drawmap3d, xplm_Phase_LocalMap3D, 0, NULL);
-            XPLMRegisterDrawCallback(drawmap2d, xplm_Phase_LocalMap2D, 0, NULL);
-        }
-#endif
+        //XPLMRegisterDrawCallback(drawships, xplm_Phase_Objects, 1, NULL);		/* Before other 3D objects */ // nst0022
+        XPLMRegisterFlightLoopCallback(drawships,                                                           // nst0022
+                                       0.1,		// interval
+                                       NULL);	// refcon not used
+        // nst0022 begin
+//        my_menu_index = XPLMAppendMenuItem(XPLMFindPluginsMenu(), "SeaTraffic", NULL, 1);
+//        my_menu_id = XPLMCreateMenu("SeaTraffic", XPLMFindPluginsMenu(), my_menu_index, menuhandler, NULL);
+//        /* Menu items must be added in order of menu_idx enum */
+//#ifdef DO_LOCAL_MAP
+//        /* Setup local map */
+//        XPLMAppendMenuItem(my_menu_id, "Draw routes in Local Map", (void*) menu_idx_local_map, 0);
+//        XPLMCheckMenuItem(my_menu_id, menu_idx_local_map, do_local_map ? xplm_Menu_Checked : xplm_Menu_Unchecked);
+//        if (do_local_map)
+//        {
+//            XPLMRegisterDrawCallback(drawmap3d, xplm_Phase_LocalMap3D, 0, NULL);
+//            XPLMRegisterDrawCallback(drawmap2d, xplm_Phase_LocalMap2D, 0, NULL);
+//        }
+//#endif
+        // nst0022 end
         need_recalc = 1;
     }
 

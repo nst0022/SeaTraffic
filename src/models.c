@@ -29,11 +29,11 @@ typedef struct
 } ship_library_t;
 
 /* default objects */
-static const ship_library_t default_library[] =
+static const ship_library_t default_library[] =          // nst0022: adjusted openscenery paths
 {
-    { leisure,	"opensceneryx/objects/vehicles/boats_ships/power.obj" },
-    { tourist,	"opensceneryx/objects/vehicles/boats_ships/tour.obj" },
-    { cruise,	"opensceneryx/objects/vehicles/boats_ships/cruise.obj" },
+    { leisure,	"opensceneryx/objects/vehicles/boats_ships/power/1.obj" },
+    { tourist,	"opensceneryx/objects/vehicles/boats_ships/tour/1.obj" },
+    { cruise,	"opensceneryx/objects/vehicles/boats_ships/cruise/1.obj" },
     { ped_sml,	"Damen_2006_Green.obj" },
     { ped_sml,	"Damen_2006_Red.obj" },
     { ped_sml,	"Damen_2006_Sky.obj" },
@@ -44,8 +44,8 @@ static const ship_library_t default_library[] =
     { ped_med,	"Damen_4212_Sky.obj" },
     { veh_sml,	"Damen_2010.obj" },
     { veh_med,	"River_crossing.obj" },
-    { veh_big,	"opensceneryx/objects/vehicles/boats_ships/ferries.obj" },
-    { cargo,	"opensceneryx/objects/vehicles/boats_ships/container.obj" },
+    { veh_big,	"opensceneryx/objects/vehicles/boats_ships/ferries/1.obj" },
+    { cargo,	"opensceneryx/objects/vehicles/boats_ships/container/1.obj" },
     { tanker,	"Aframax_tanker_Black.obj" },
     { tanker,	"Aframax_tanker_Blue.obj" },
     { tanker,	"Aframax_tanker_Grey.obj" },
