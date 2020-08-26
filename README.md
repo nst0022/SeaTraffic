@@ -1,13 +1,20 @@
-SeaTraffic plugin for X-Plane<sup>®</sup>
-====
-
-This [X-Plane](x-plane.com) plugin displays ships moving along real-life routes.
-
-The repo contains the artwork assets and the source code for the X-Plane plugin. User oriented documention is contained in the file [SeaTraffic-ReadMe.html](http://htmlpreview.github.io/?https://raw.githubusercontent.com/Marginal/SeaTraffic/master/SeaTraffic-ReadMe.html).
+# SeaTraffic plugin for X-Plane<sup>®</sup>
 
 &nbsp;
 
-** This fork runs and builds on Linux only and requires X-Plane 11.50+! **
+SeaTraffic is an [X-Plane](x-plane.com) plugin that displays ships moving along real-life routes.   
+
+This repository contains a complete plugin distribution for **the Linux version of X-Plane 11.50+** (including some ship models) as well as the source code for the X-Plane plugin.   
+User oriented documention is contained in the file [SeaTraffic-ReadMe.html](http://htmlpreview.github.io/?https://raw.githubusercontent.com/Marginal/SeaTraffic/master/SeaTraffic-ReadMe.html).
+
+&nbsp;
+
+## Requirements
+
+- Linux (an up-to-date distro)
+- [X-Plane 11](https://www.x-plane.com/) (11.50 or higher)
+- [OpenSceneryX](https://www.opensceneryx.com/)
+- Python 2.x (for building/updating the routes list)
 
 &nbsp;
 
@@ -22,12 +29,18 @@ Copy the "SeaTraffic" folder into
 
 ## (Re)Building the plugin
 
-Use the usual commands.
+To clean a previous build from the _"build"_ and _"SeaTraffic/64"_ subfolders (if present):
 	
 	make clean
-	make
-	make install
 	
+To compile a new _lin.xpl_ file, output in _"build"_
+	
+	make
+	
+To move _lin.xpl_ from the _"build"_ subfolder to the _"SeaTraffic/64"_ subfolder
+	
+	make install
+
 &nbsp;	
 
 ## Building the routes list
