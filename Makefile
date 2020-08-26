@@ -1,21 +1,39 @@
-include version.mak
+# I have no idea what I'm doing, but it sort of works
 
-TARGET=$(PROJECT)_$(VER).zip
+# Plugin name
+NAME=SeaTraffic
+# Version number
+PLUGINVERSION=2.0
+# Build target
+TARGET=lin.xpl
+# Build directory
+BUILDDIR=$(CURDIR)/build
+# Source directory
+SOURCEDIR=$(CURDIR)/src
+# Location of the SDK directory
+XPSDK=$(CURDIR)/SDK
+# Path to SDK headers and widgets
+INCL=-I$(XPSDK)/CHeaders/XPLM -I$(XPSDK)/CHeaders/Widgets
+# List of C flags
+CFLAGS=-m64 -Wno-missing-braces -static-libgcc -shared -fPIC -fvisibility=hidden -Wall -O2 -DVERSION=$(PLUGINVERSION) -DXPLM200=1 -DXPLM210=1 -DAPL=0 -DIBM=0 -DLIN=1 -DXPLM300=1 -DXPLM301=1 -DXP11=1 -lGLU -lGL -lm
+# List of source files
+SRC= \
+	$(SOURCEDIR)/models.c \
+	$(SOURCEDIR)/routes.c \
+	$(SOURCEDIR)/seatraffic.c
 
-INSTALLDIR=~/Desktop/X-Plane\ 10/Resources/plugins
+.PHONY: all build clean
 
-FILES=$(PROJECT)-ReadMe.html $(PROJECT)/lin.xpl $(PROJECT)/mac.xpl $(PROJECT)/win.xpl $(PROJECT)/32/win.xpl $(PROJECT)/64/lin.xpl $(PROJECT)/64/win.xpl $(PROJECT)/buildroutes.py $(PROJECT)/routes.txt $(PROJECT)/enhancedby_opensceneryx_logo.png $(PROJECT)/Osm_linkage.png $(PROJECT)/Tanker.dds $(PROJECT)/Tanker_LIT.dds $(PROJECT)/Aframax_tanker_Black.obj $(PROJECT)/Aframax_tanker_Blue.obj $(PROJECT)/Aframax_tanker_Grey.obj $(PROJECT)/Aframax_tanker_Sky.obj $(PROJECT)/Damen_2006_Green.obj $(PROJECT)/Damen_2006_Sky.obj $(PROJECT)/Damen_2006_Red.obj $(PROJECT)/Damen_2006_White.obj $(PROJECT)/Damen_2010.dds $(PROJECT)/Damen_2010_LIT.dds $(PROJECT)/Damen_2010.obj $(PROJECT)/Damen_4212.dds $(PROJECT)/Damen_4212_LIT.dds $(PROJECT)/Damen_4212_Blue.obj $(PROJECT)/Damen_4212_Green.obj $(PROJECT)/Damen_4212_Orange.obj $(PROJECT)/Damen_4212_Sky.obj $(PROJECT)/River_crossing.dds $(PROJECT)/River_crossing_LIT.dds $(PROJECT)/River_crossing.obj $(PROJECT)/wake.dds $(PROJECT)/wake_big.obj $(PROJECT)/wake_med.obj $(PROJECT)/wake_sml.obj
+# Make all
+all:
+	mkdir -p $(BUILDDIR)
+	gcc $(CFLAGS) $(INCL) $(SRC) -o $(BUILDDIR)/$(TARGET)
+	
+# Make install
+install:	
+	mv $(BUILDDIR)/$(TARGET) $(CURDIR)/$(NAME)/64/$(TARGET)
 
-all:	$(TARGET)
-
-clean:
-	rm $(TARGET)
-
-install:	$(TARGET)
-	rm -rf $(INSTALLDIR)/$(PROJECT)
-	unzip -o -d $(INSTALLDIR) $(TARGET)
-
-$(TARGET):	$(FILES)
-	chmod +x $(PROJECT)/*.xpl $(PROJECT)/32/*.xpl $(PROJECT)/64/*.xpl
-	rm -f $(TARGET)
-	zip -MM $(TARGET) $+
+# Make clean
+clean:	
+	rm -f $(BUILDDIR)/$(TARGET)
+	rm -f $(CURDIR)/$(NAME)/64/$(TARGET)

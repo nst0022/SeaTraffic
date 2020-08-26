@@ -762,7 +762,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescript
 
     sprintf(outName, "SeaTraffic v%.2f", VERSION);
     strcpy(outSignature, "Marginal.SeaTraffic");
-    strcpy(outDescription, "Shows animated marine traffic");
+    strcpy(outDescription, "Animated marine traffic by Marginal. Updated for X-Plane 11.50+ by nst0022.");
 
 #ifdef DEBUG
     XPLMSetErrorCallback(mybad);

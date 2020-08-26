@@ -5,56 +5,74 @@ This [X-Plane](x-plane.com) plugin displays ships moving along real-life routes.
 
 The repo contains the artwork assets and the source code for the X-Plane plugin. User oriented documention is contained in the file [SeaTraffic-ReadMe.html](http://htmlpreview.github.io/?https://raw.githubusercontent.com/Marginal/SeaTraffic/master/SeaTraffic-ReadMe.html).
 
-Building the plugin
-----
-The plugin is built from the `src` directory.
+&nbsp;
 
-Mac 32 & 64 bit fat binary:
+** This fork runs and builds on Linux only and requires X-Plane 11.50+! **
 
-    make -f Makefile.mac
+&nbsp;
 
-Linux 32 & 64 bit binaries:
+## Installation
 
-    make -f Makefile.lin
+Copy the "SeaTraffic" folder into
 
-Windows 32 or 64 bit binary:
+	X-Plane 11/Resources/Plugins
+	
+&nbsp;
 
-    vcvarsall [target]
-    nmake -f Makefile.win
 
-Building the routes list
-----
+## (Re)Building the plugin
+
+Use the usual commands.
+	
+	make clean
+	make
+	make install
+	
+&nbsp;	
+
+## Building the routes list
+
 The routes list is built from the `SeaTraffic` directory, and requires Python 2.x.
 
     buildroutes.py
+    
+&nbsp;
 
-This fork by nst0022 (2020-08-23)
-----
+## Fork/Update history
 
-I have changed the code from XPLMDrawObjects to XPLMInstancing, which is mandatory for X-Plane 11.50 Vulkan.
+&nbsp;
 
-As I am on Linux, I could not compile for Windows or Mac, but tested the changes in a separate configuration (64-bit Linux only).
+#### Fork by JT8D-17 (2020-08-27)
 
-In the make files for Windows and Mac, XPSDK213 needs probably to be replaced by XPSDK302, like in the make file for Linux, but I did not want to touch these files, nor did I change the version number.
+- Made XPLMInstanceRef for the wakes in seatraffic.h static to permit compilation (on my system)
+- Gave nst0022 some credit in the plugin description
+- Rebuilt makefile from scratch (64bit Linux only)
+- Included prebuilt 64bit lin.xpl file in plugin folder
+- Included SDK folder
+- Updated this document
 
-I have marked all changes with 'nst0022' in the source code, which might be better readable than the diff here on GitHub.
 
-I will not maintain the source code further on, because I have only a rudimentary understanding of what happens internally. This source code is an offer for scenery maintainers, who want to consider the changes for their own purposes.
+&nbsp;
 
-Update by nst0022 (2020-08-25)
-----
+#### Update by nst0022 (2020-08-25)
 
-Version 2.0
-
-- replace "drawing" by "instancing"
-- replace "draw callback" by "flightloop callback"
+- Version 2.0
+- replaced "drawing" by "instancing"
+- replaced "draw callback" by "flightloop callback"
 - de-activate "menu item" and "draw on local map"
-- show wakes always, not dependent on reflection slider
+- shows wakes always, not dependent on reflection slider
+- Known issues:
+	- "draw on local map" needs to be redesigned to use the X-Plane 11 Map API
+	- "wakes" appear only sporadically, this needs to be investigated
+	- reflection slider coding does not work when activated, this needs to be investigated
+	- none of the assert messages come through to stderr (w/ or w/o NDEBUG), they need to be replaced by messages to Log.txt
 
-Known issues:
+&nbsp;
 
-- "draw on local map" needs to be redesigned to use the X-Plane 11 Map API
-- "wakes" appear only sporadically, this needs to be investigated
-- reflection slider coding does not work when activated, this needs to be investigated
-- none of the assert messages come through to stderr (w/ or w/o NDEBUG), they need to be replaced by messages to Log.txt
+#### Fork by nst0022 (2020-08-23)
 
+I have changed the code from XPLMDrawObjects to XPLMInstancing, which is mandatory for X-Plane 11.50 Vulkan.   
+As I am on Linux, I could not compile for Windows or Mac, but tested the changes in a separate configuration (64-bit Linux only).   
+In the make files for Windows and Mac, XPSDK213 needs probably to be replaced by XPSDK302, like in the make file for Linux, but I did not want to touch these files, nor did I change the version number.   
+I have marked all changes with 'nst0022' in the source code, which might be better readable than the diff here on GitHub.   
+I will not maintain the source code further on, because I have only a rudimentary understanding of what happens internally. This source code is an offer for scenery maintainers, who want to consider the changes for their own purposes.

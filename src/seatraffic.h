@@ -169,9 +169,9 @@ typedef struct active_route_t
     XPLMInstanceRef * instance_ref; // nst0022 new field
 } active_route_t;
 
-XPLMInstanceRef * instance_ref_wake_big; // nst0022 new field
-XPLMInstanceRef * instance_ref_wake_med; // nst0022 new field
-XPLMInstanceRef * instance_ref_wake_sml; // nst0022 new field
+static XPLMInstanceRef * instance_ref_wake_big; // nst0022 new field
+static XPLMInstanceRef * instance_ref_wake_med; // nst0022 new field
+static XPLMInstanceRef * instance_ref_wake_sml; // nst0022 new field
 
 /* globals */
 extern const ship_t ships[ship_kind_count];

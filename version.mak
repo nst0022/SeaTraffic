@@ -1,2 +1,0 @@
-PROJECT=SeaTraffic
-VERSION=2.0
