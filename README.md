@@ -58,3 +58,9 @@ Known issues:
 - reflection slider coding does not work when activated, this needs to be investigated
 - none of the assert messages come through to stderr (w/ or w/o NDEBUG), they need to be replaced by messages to Log.txt
 
+Update by nst0022 (2020-08-27)
+----
+
+- fix a reported compile error
+
+I did not change the version number, because the functionality of the plugin has not changed.

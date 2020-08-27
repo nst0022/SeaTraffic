@@ -18,6 +18,10 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason, LPVOID lpReserved)
 
 
 /* Globals */
+static XPLMInstanceRef * instance_ref_wake_big; // nst0022 new field
+static XPLMInstanceRef * instance_ref_wake_med; // nst0022 new field
+static XPLMInstanceRef * instance_ref_wake_sml; // nst0022 new field
+
 static char mypath[PATH_MAX], *relpath;
 
 const char * drefs[] = {NULL}; // nst0022
