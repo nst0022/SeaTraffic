@@ -6,6 +6,7 @@
  */
 
 #include "seatraffic.h"
+#include "wakes.h"
 
 #if IBM
 #  include <windows.h>
@@ -486,29 +487,32 @@ float	drawships(float  in_elapsed_since_last_call,                // nst0022
     //    do_wakes = 1;			/* Do wakes on base pass if reflections enabled */
     //}
     //else				/* shadows or base */
-    {
+    //{
         for (a=active_routes; a; a=a->next)
             if (*a->object_ref && indrawrange(a->drawinfo.x - view_x, a->drawinfo.z - view_z))
             {
                 //XPLMDrawObjects(*a->object_ref, 1, &(a->drawinfo), is_night, 1); // nst0022
                 XPLMInstanceSetPosition(a->instance_ref, &(a->drawinfo), &dummy);  // nst0022
 
-                // nst0022 begin
+                // nst0022 & JT8D-17 begin
+                /* Pick wake size */
+                XPLMInstanceRef instance_ref_wake;
+                if      (a->ship->semilen >= WAKE_BIG) {instance_ref_wake = instance_ref_wake_big;}
+                else if (a->ship->semilen >= WAKE_MED) {instance_ref_wake = instance_ref_wake_med;}
+                else                                   {instance_ref_wake = instance_ref_wake_sml;}
                 // wakes
                 if ((a->ship->speed >= WAKE_MINSPEED)                             &&	// only show wakes for ships going at speed
                     (a->last_node + a->direction >= 0)                            &&  // and going forward
-                    (a->last_node + a->direction < a->route->pathlen)             &&	// and not lingering
-                     inwakerange(a->drawinfo.x - view_x, a->drawinfo.z - view_z))			// and closeish
+                    (a->last_node + a->direction < a->route->pathlen))          //&&	// and not lingering
+                    //inwakerange(a->drawinfo.x - view_x, a->drawinfo.z - view_z))			// and closeish
                 {
-                  XPLMInstanceRef instance_ref_wake;
-
-                  if      (a->ship->semilen >= WAKE_BIG) {instance_ref_wake = instance_ref_wake_big;}
-                  else if (a->ship->semilen >= WAKE_MED) {instance_ref_wake = instance_ref_wake_med;}
-                  else                                   {instance_ref_wake = instance_ref_wake_sml;}
-
-                  XPLMInstanceSetPosition(instance_ref_wake, &(a->drawinfo), &dummy);
-                }
-                // nst0022 end
+					a->drawinfo.z = a->drawinfo.z + 5; // Raise wake a bit to alleviate clipping
+					XPLMInstanceSetPosition(instance_ref_wake, &(a->drawinfo), &dummy); // draw wake regularly
+                } else {
+					a->drawinfo.z = - 5; // Hide wake below sea level
+					XPLMInstanceSetPosition(instance_ref_wake, &(a->drawinfo), &dummy); // hide wake
+				}
+                // nst0022 & JT8D-17 end
             }
 
         // nst0022 begin
@@ -531,7 +535,7 @@ float	drawships(float  in_elapsed_since_last_call,                // nst0022
         //    glDisable(GL_POLYGON_OFFSET_FILL);
         // nst0022 end
         //}
-    }
+    //}
 
 #ifdef DO_ACTIVE_LIST
 # if IBM
@@ -762,7 +766,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescript
 
     sprintf(outName, "SeaTraffic v%.2f", VERSION);
     strcpy(outSignature, "Marginal.SeaTraffic");
-    strcpy(outDescription, "Animated marine traffic by Marginal. Updated for X-Plane 11.50+ by nst0022.");
+    strcpy(outDescription, "Animated marine traffic by Marginal. Updated for X-Plane 11.50+.");
 
 #ifdef DEBUG
     XPLMSetErrorCallback(mybad);

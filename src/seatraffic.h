@@ -69,7 +69,7 @@
 #define LINGER_TIME 300.0f	/* How long should ships hang around at the dock at the end of their route [s] */
 #define SHIP_SPACING 8		/* Try to space ships out by this many times their semilen */
 #define RADIUS 6378145.f	/* from sim/physics/earth_radius_m [m] */
-#define WAKE_MINSPEED 5		/* Only draw wakes for ships going this fast [m/s] */
+#define WAKE_MINSPEED 4		/* Only draw wakes for ships going this fast [m/s] */
 #define WAKE_MED 20		/* Draw medium wake for ships this large (semilen) [m] */
 #define WAKE_BIG 40		/* Draw large  wake for ships this large (semilen) [m] */
 #define LIBRARY_PREFIX "marginal/seatraffic/"	/* library names */
@@ -168,10 +168,6 @@ typedef struct active_route_t
 #endif
     XPLMInstanceRef * instance_ref; // nst0022 new field
 } active_route_t;
-
-static XPLMInstanceRef * instance_ref_wake_big; // nst0022 new field
-static XPLMInstanceRef * instance_ref_wake_med; // nst0022 new field
-static XPLMInstanceRef * instance_ref_wake_sml; // nst0022 new field
 
 /* globals */
 extern const ship_t ships[ship_kind_count];
