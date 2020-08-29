@@ -64,3 +64,12 @@ Update by nst0022 (2020-08-27)
 - fix a reported compile error
 
 I did not change the version number, because the functionality of the plugin has not changed.
+
+Update by nst0022 (2020-08-29)
+----
+
+Version 2.1
+
+- implement draw on Map
+
+Handling is described in SeaTraffic-ReadMe.html, chapter "Drawing on X-Plane's Map".

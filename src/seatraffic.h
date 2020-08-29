@@ -24,6 +24,7 @@
 #include <sys/types.h>
 
 #define XPLM302	// nst0022 requires X-Plane 11.50 or later
+#define XPLM300	// nst0022 2.1
 #define XPLM200	/* Requires X-Plane 9.0 or later */
 #define XPLM210	/* Uses asynchronous object loading if on v10 */
 
@@ -37,6 +38,7 @@
 #include "XPUIGraphics.h"
 #include "XPLMInstance.h"   // nst0022
 #include "XPLMProcessing.h" // nst0022
+#include "XPLMMap.h"        // nst0022 2.1
 
 #if APL
 #  include <OpenGL/gl.h>
@@ -75,12 +77,6 @@
 #define LIBRARY_PREFIX "marginal/seatraffic/"	/* library names */
 #define LIBRARY_TOKEN_MAX 8 	/* token size */
 
-/* rendering options */
-// #define DO_LOCAL_MAP // nst0022 de-activated
-//enum
-//{
-//    menu_idx_local_map
-//} menu_idx;
 #ifdef DEBUG
 #  define DO_ACTIVE_LIST
 #endif
@@ -93,6 +89,28 @@ typedef enum	/* use -fshort-enums with gcc */
     leisure, tourist, cruise, ped_sml, ped_med, veh_sml, veh_med, veh_big, cargo, tanker,
     ship_kind_count
 } ship_kind_t;
+
+typedef struct  // nst0022 2.1
+{
+  ship_kind_t   kind;
+  char        * name;
+}
+  icon_library_t;
+
+static const icon_library_t default_icon_library[] =    // nst0022 2.1
+{
+  {leisure,	"Resources/plugins/SeaTraffic/icon_power.png"  },
+  {tourist,	"Resources/plugins/SeaTraffic/icon_tour.png"   },
+  {cruise,	"Resources/plugins/SeaTraffic/icon_cruise.png" },
+  {ped_sml,	"Resources/plugins/SeaTraffic/icon_ped_sml.png"},
+  {ped_med,	"Resources/plugins/SeaTraffic/icon_ped_med.png"},
+  {veh_sml,	"Resources/plugins/SeaTraffic/icon_veh_sml.png"},
+  {veh_med,	"Resources/plugins/SeaTraffic/icon_veh_med.png"},
+  {veh_big,	"Resources/plugins/SeaTraffic/icon_veh_big.png"},
+  {cargo,	  "Resources/plugins/SeaTraffic/icon_cargo.png"  },
+  {tanker,	"Resources/plugins/SeaTraffic/icon_tanker.png" },
+};
+
 
 /* Description of a kind of ship */
 typedef struct
@@ -132,9 +150,7 @@ typedef struct
 typedef struct
 {
     loc_t *path;
-#if defined(DO_LOCAL_MAP) || defined(DO_ACTIVE_LIST)
-    char *name;
-#endif
+    char *name;            // nst0022 2.1 activated
     ship_kind_t ship_kind;
     unsigned short pathlen;
 } route_t;
@@ -163,9 +179,6 @@ typedef struct active_route_t
     double altmsl;		/* Altitude */
     XPLMProbeRef ref_probe;	/* Terrain probe */
     XPLMDrawInfo_t drawinfo;	/* Where to draw the ship */
-#ifdef DO_LOCAL_MAP
-    int mapx, mapy;		/* position in local map */
-#endif
     XPLMInstanceRef * instance_ref; // nst0022 new field
 } active_route_t;
 

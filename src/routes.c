@@ -100,11 +100,11 @@ int readroutes(char *mypath, char *err)
                 sprintf(err, "Unrecognised ship type \"%s\" at routes.txt line %d", c, lineno);
                 return 0;
             }
-#if defined(DO_LOCAL_MAP) || defined(DO_ACTIVE_LIST)
+            // nst0022 2.1 activated begin
             c=name+strlen(name)-1;				/* name is utf-8 encoded, which X-Plane can render */
             while ((c>=name) && isspace(*c)) { *(c--)=0; };	/* rtrim */
             currentroute->name=strdup(name);
-#endif
+            // nst0022 2.1 activated end
         }
         c=fgets(buffer, PATH_MAX, h);
     }
@@ -199,7 +199,10 @@ route_t *route_list_pop(route_list_t **route_list, int n)
     this=*lastptr;
     route=this->route;
     *lastptr=this->next;
-    free(this);
+    if (this) // nst0022 2.1
+    {
+      free(this);
+    }
     return route;
 }
 
@@ -223,7 +226,10 @@ void route_list_free(route_list_t **route_list)
     while (*route_list)
     {
         next=(*route_list)->next;
-        free(*route_list);
+        if (* route_list) // nst0022 2.1
+        {
+          free(* route_list);
+        }
         *route_list=next;
     }
 }
@@ -272,7 +278,10 @@ void active_route_pop(active_route_t **active_routes, int n)
     }
     this=*lastptr;
     *lastptr=this->next;
-    free(this);
+    if (this) // nst0022 2.1
+    {
+      free(this);
+    }
 }
 
 
