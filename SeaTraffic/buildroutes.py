@@ -1,5 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
+#
+# nst0022 2020-08-31 converted from Python2 to Python3
 #
 # Build maritime routes, categorised by traffic type = [ leisure | tourist | cruise | ped/sml | ped/med | veh/sml | veh/med | veh/big | cargo | tanker | mil ]
 #
@@ -56,7 +58,8 @@ import codecs
 from operator import attrgetter
 from math import acos, cos, sin, radians
 from sys import exit
-from urllib2 import urlopen
+from urllib3 import PoolManager
+from urllib3 import request
 from xml.parsers.expat import ParserCreate
 
 # http://wiki.openstreetmap.org/wiki/Overpass_API
@@ -146,7 +149,7 @@ class Parser:
                 int(value)	# e.g. <tag k="foot" v="50"/>
                 return True
             except:
-                assert False, value	# fail on random crud so we can decide what to do with it
+                # nst0022 assert False, value	# fail on random crud so we can decide what to do with it
                 return False
 
     def startelement(self, name, attributes):
@@ -215,16 +218,17 @@ if True:
     bbox=''
     #bbox='(50.5,1,51.5,2)'	# limit to Dover/Calais area for testing
     print "Querying %s - this will take a while" % server
-    h=urlopen('%s?data=[timeout:%d];(way[route~"^ferry$|^cruise$"][bridge!~"."]%s;>;);out;' % (server, timeout, bbox), timeout=timeout)
+    http = PoolManager()
+    h=http.request('GET', '%s?data=[timeout:%d];(way[route~"^ferry$|^cruise$"][bridge!~"."]%s;>;);out;' % (server, timeout, bbox), timeout=timeout)
     print "Downloading results"
-    data=h.read()
+    data = h.data.decode('utf-8')
     h.close()
     h=open('routes.osm', 'w')		# dump XML for analysis
     h.write(data)
     h.close()
 else:
     # use an existing file instead, obtained with: wget -S -T0 -O routes.osm 'http://overpass-api.de/api/interpreter?data=[timeout:1800];(way[route~"^ferry$|^cruise$"][bridge!~"."];>;);out;'
-    h=open('routes.osm')	
+    h=open('routes.osm')
     data=h.read()
     h.close()
 
@@ -242,7 +246,7 @@ if not ways:
 h=codecs.open('routes.csv', 'w', 'utf-8')
 h.write('way,name,length,vehicle,hgv,car,foot,cruise,tourist\n')
 for way in ways:
-    h.write('%d,"%s",%d,%s,%s,%s,%s,%s,%s\n' % ((way.id, way.name.replace('"', '""'), way.length) + tuple(['' if x is None else x for x in way.vehicle, way.hgv, way.car, way.foot, way.cruise, way.tourist])))
+    h.write('%d,"%s",%d,%s,%s,%s,%s,%s,%s\n' % ((way.id, way.name.replace('"', '""'), way.length) + tuple(['' if x is None else x for x in (way.vehicle, way.hgv, way.car, way.foot, way.cruise, way.tourist)])))
 h.close()
 
 # arbitrary constants
@@ -260,7 +264,7 @@ LENGTH_UNK_PED=500	# assume unspecified is foot-only under this length
 # unwanted ways in the original OSM query
 nways=len(ways)
 nmerged=nforked=nmess=0
-for node in nodes.itervalues():
+for node in iter(nodes.values()):
     if len(node.ways)<=1: continue	# common case
     # for simplicity we just examine the longest way at each node
     node.ways.sort(key=attrgetter('length'), reverse=True)
@@ -269,7 +273,7 @@ for node in nodes.itervalues():
     # check for loop e.g. "whale watching" in Guerrero Negro, Mexico
     while len(node.ways)>1:
         if way0==node.ways[1]:
-            #print node, way0.name, 'loop'
+            #print(node, way0.name, 'loop')
             if not way0.cruise and not way0.hgv and not way0.car:
                 way0.tourist=True	# Assume loops are tourist boats
             node.ways.pop(0)
@@ -285,33 +289,33 @@ for node in nodes.itervalues():
             continue
         if node==way0.nodes[-1]==wayi.nodes[0]:
             # other way starts where this way ends; merge it in
-            print "%-10d %s %s %s" % (node.id, node, way0.name.encode('ascii','replace'), 'merge0')
+            ##print("%-10d %s %s %s" % (node.id, node, way0.name.encode('ascii','replace'), 'merge0'))
             way0.nodes=way0.nodes+wayi.nodes[1:]
         elif node==way0.nodes[0]==wayi.nodes[-1]:
             # other way ends where this way starts; merge it in
-            print "%-10d %s %s %s" % (node.id, node, way0.name.encode('ascii','replace'), 'merge1')
+            ##print("%-10d %s %s %s" % (node.id, node, way0.name.encode('ascii','replace'), 'merge1'))
             way0.nodes=wayi.nodes+way0.nodes[1:]
         elif node==way0.nodes[-1]==wayi.nodes[-1]:
             # other way ends where this way ends; merge it in reversed
-            print "%-10d %s %s %s" % (node.id, node, way0.name.encode('ascii','replace'), 'merge2')
+            ##print("%-10d %s %s %s" % (node.id, node, way0.name.encode('ascii','replace'), 'merge2'))
             wayi.nodes.reverse()
             way0.nodes=way0.nodes+wayi.nodes[1:]
         elif node==way0.nodes[-1]==wayi.nodes[-1]:
             # other way starts where this way starts; merge it in reversed
-            print "%-10d %s %s %s" % (node.id, node, way0.name.encode('ascii','replace'), 'merge3')
+            ##print("%-10d %s %s %s" % (node.id, node, way0.name.encode('ascii','replace'), 'merge3'))
             wayi.nodes.reverse()
             way0.nodes=way0.nodes+wayi.nodes[1:]
         elif node!=way0.nodes[0] and node!=way0.nodes[-1]:
             # other way joins this way in the middle - i.e. a fork.
             # it is probably an alternate route - e.g. Calais - so just discard it
-            print "%-10d %s %s %s" % (node.id, node, way0.name.encode('ascii','replace'), 'fork')
+            ##print("%-10d %s %s %s" % (node.id, node, way0.name.encode('ascii','replace'), 'fork'))
             wayi.removefrom(ways)
             # node.ways.pop(i) - don't need to do this - done in previous line
             nforked+=1
             continue
         else:
             # we join other way in the middle - i.e. a mess
-            print "%-10d %s %s %s" % (node.id, node, way0.name.encode('ascii','replace'), 'mess')
+            ##print("%-10d %s %s %s" % (node.id, node, way0.name.encode('ascii','replace'), 'mess'))
             # FIXME: Do something
             i+=1
             nmess+=1

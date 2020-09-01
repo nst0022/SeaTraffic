@@ -73,3 +73,12 @@ Version 2.1
 - implement draw on Map
 
 Handling is described in SeaTraffic-ReadMe.html, chapter "Drawing on X-Plane's Map".
+
+Update by nst0022 (2020-09-01)
+----
+
+- convert buildroutes.py and Aframax_tanker.py from Python2 to Python3
+
+The reason for this change is, that Debian will not support Python2 anymore starting on 2021-01-01.
+
+I did not change the version number, because the functionality of the plugin has not changed.
