@@ -141,10 +141,10 @@ static inline int indrawrange(float xdist, float ydist)
     return (xdist*xdist + ydist*ydist <= DRAW_DISTANCE*DRAW_DISTANCE);
 }
 
-static inline int inreflectrange(float xdist, float ydist)
-{
-    return (xdist*xdist + ydist*ydist <= DRAW_REFLECT*DRAW_REFLECT);
-}
+//static inline int inreflectrange(float xdist, float ydist)
+//{
+//    return (xdist*xdist + ydist*ydist <= DRAW_REFLECT*DRAW_REFLECT);
+//}
 
 static inline int inwakerange(float xdist, float ydist)
 {
@@ -736,7 +736,7 @@ static void put_prefs()
 
   sprintf(text, "%d%d%d", (int)check1, (int)check2, (int)check3);
 
-  fprintf(fh, text);
+  fprintf(fh, "%s", text);
 
   fclose(fh);
 }

@@ -81,4 +81,6 @@ Update by nst0022 (2020-09-01)
 
 The reason for this change is, that Debian will not support Python2 anymore starting on 2021-01-01.
 
+- fix two Mac compiler warnings
+
 I did not change the version number, because the functionality of the plugin has not changed.
