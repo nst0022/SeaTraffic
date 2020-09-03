@@ -1,9 +1,9 @@
 # -*-Makefile-*- in NMAKE format
-# Makes 32bit & 64bit version for X-Plane 10+, plus 32bit version without SSE2 for X-Plane 9
+# Makes 64bit version for X-Plane 11+
 
 !include ..\version.mak
 
-XPSDK=..\..\XPSDK213
+XPSDK=..\..\XPSDK303
 
 CC=cl
 #BUILD=-ZI -DDEBUG
@@ -15,18 +15,11 @@ CFLAGS=-nologo -fp:fast -LD $(BUILD) $(DEFINES) $(INC)
 SRC=models.c routes.c seatraffic.c
 TARGETDIR=..\$(PROJECT)
 
-# Work out which target we're set up for by looking for a program (ml64.exe) that only exists in the path for one target
-!if [ml64 >nul 2>&1] == 0
 CPU=x64
 ARCHXP=_64
 TARGET=$(TARGETDIR)\64\win.xpl
-!else
-CPU=x86
-ARCHXP=
-TARGET=$(TARGETDIR)\32\win.xpl $(TARGETDIR)\win.xpl
-!endif
 
-LIBS=$(XPSDK)\Libraries\Win\XPLM$(ARCHXP).lib $(XPSDK)\Libraries\Win\XPWidgets$(ARCHXP).lib GlU32.Lib OpenGL32.Lib
+LIBS=$(XPSDK)\Libraries\Win\XPLM$(ARCHXP).lib $(XPSDK)\Libraries\Win\XPWidgets$(ARCHXP).lib
 
 RM=del /q
 CP=copy /y
@@ -35,23 +28,12 @@ MD=mkdir
 all:	$(TARGET)
 
 install:	$(TARGET)
-!if "$(CPU)" == "x86"
-	-$(MD) "X:\Desktop\X-Plane 9\Resources\plugins\$(PROJECT)\"
-	$(CP) $(TARGETDIR)\win.xpl "X:\Desktop\X-Plane 9\Resources\plugins\$(PROJECT)\"
-	-$(MD) "X:\Desktop\X-Plane 10\Resources\plugins\$(PROJECT)\32"
-	$(CP) $(TARGETDIR)\32\win.xpl "X:\Desktop\X-Plane 10\Resources\plugins\$(PROJECT)\32\"
-!else
 	-$(MD) "X:\Desktop\X-Plane 10\Resources\plugins\$(PROJECT)\64\"
 	$(CP) $(TARGETDIR)\64\win.xpl "X:\Desktop\X-Plane 10\Resources\plugins\$(PROJECT)\64\"
-!endif
 
 $(TARGETDIR)\win.xpl:	$(SRC)
 	-@if not exist "$(TARGETDIR)" $(MD) "$(TARGETDIR)"
 	$(CC) $(CFLAGS) -Fe$@ -Fd$* $(SRC) $(LIBS)
-
-$(TARGETDIR)\32\win.xpl:	$(SRC)
-	-@if not exist "$(TARGETDIR)\32" $(MD) "$(TARGETDIR)\32"
-	$(CC) -arch:SSE2 $(CFLAGS) -Fe$@ -Fd$* $(SRC) $(LIBS)
 
 $(TARGETDIR)\64\win.xpl:	$(SRC)
 	-@if not exist "$(TARGETDIR)\64" $(MD) "$(TARGETDIR)\64"
@@ -60,7 +42,6 @@ $(TARGETDIR)\64\win.xpl:	$(SRC)
 clean:
 	-$(RM) *~ *.bak *.obj
 	-$(RM) $(TARGETDIR)\win.*
-	-$(RM) $(TARGETDIR)\32\win.*
 	-$(RM) $(TARGETDIR)\64\win.*
 
 seatraffic.c:	seatraffic.h

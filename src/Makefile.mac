@@ -2,7 +2,7 @@
 
 include ../version.mak
 
-XPSDK=../../XPSDK213
+XPSDK=../../XPSDK303
 
 CC=gcc
 #BUILD=-g -DDEBUG
@@ -11,7 +11,7 @@ BUILD=-O3 -DNDEBUG
 LDFLAGS=-Wl,-x
 DEFINES=-DAPL=1 -DIBM=0 -DLIN=0 -DVERSION=$(VERSION)
 INC=-F$(XPSDK)/Libraries/Mac -I$(XPSDK)/CHeaders/XPLM -I$(XPSDK)/CHeaders/Widgets
-CFLAGS=-arch ppc -arch i586 -arch x86_64 -ffast-math -pipe -Wall -Winline -Wno-missing-braces -bundle -fvisibility=hidden -mmacosx-version-min=10.4 $(BUILD) $(DEFINES) $(INC)
+CFLAGS=-arch x86_64 -ffast-math -pipe -Wall -Winline -Wno-missing-braces -bundle -fvisibility=hidden $(BUILD) $(DEFINES) $(INC)
 
 VPATH=
 SRC=models.c routes.c seatraffic.c
@@ -33,8 +33,6 @@ MD=mkdir -p
 all:	$(TARGET)
 
 install:	$(TARGET)
-	$(MD) ~/Desktop/X-Plane\ 9/Resources/plugins/$(PROJECT)
-	$(CP) $(TARGET) ~/Desktop/X-Plane\ 9/Resources/plugins/$(PROJECT)/
 	$(MD) ~/Desktop/X-Plane\ 10/Resources/plugins/$(PROJECT)
 	$(CP) $(TARGET) ~/Desktop/X-Plane\ 10/Resources/plugins/$(PROJECT)/
 

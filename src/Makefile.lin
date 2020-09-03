@@ -5,7 +5,7 @@
 
 include ../version.mak
 
-XPSDK=../../XPSDK302
+XPSDK=../../XPSDK303
 
 CC=gcc
 #BUILD=-g -DDEBUG
@@ -23,13 +23,10 @@ TARGETDIR=../$(PROJECT)
 
 ############################################################################
 
-BUILD_32=$(shell uname)32
-OBJS_32=$(addprefix $(BUILD_32)/, $(addsuffix .o, $(basename $(notdir $(SRC)))))
-TARGET_32=$(TARGETDIR)/lin.xpl
 BUILD_64=$(shell uname)64
 OBJS_64=$(addprefix $(BUILD_64)/, $(addsuffix .o, $(basename $(notdir $(SRC)))))
 TARGET_64=$(TARGETDIR)/64/lin.xpl
-TARGET=$(TARGET_32) $(TARGET_64)
+TARGET=$(TARGET_64)
 
 RM=rm -f
 CP=cp -p
@@ -37,35 +34,19 @@ MD=mkdir -p
 
 .PHONY: all clean install
 
-all:	$(TARGET_32) $(TARGET_64)
+all:	$(TARGET_64)
 
-install:	$(TARGET_32) $(TARGET_64)
-	$(MD) /media/jonathan/Desktop/X-Plane\ 9/Resources/plugins/$(PROJECT)
-	$(CP) $(TARGET_32) /media/jonathan/Desktop/X-Plane\ 9/Resources/plugins/$(PROJECT)/
-	$(MD) /media/jonathan/Desktop/X-Plane\ 10/Resources/plugins/$(PROJECT)/
-	$(CP) $(TARGET_32) /media/jonathan/Desktop/X-Plane\ 10/Resources/plugins/$(PROJECT)/
+install:	$(TARGET_64)
 	$(MD) /media/jonathan/Desktop/X-Plane\ 10/Resources/plugins/$(PROJECT)/64
 	$(CP) $(TARGET_64) /media/jonathan/Desktop/X-Plane\ 10/Resources/plugins/$(PROJECT)/64/
-
-$(TARGET_32):	$(OBJS_32) | $(TARGETDIR)
-	$(CC) $(CFLAGS) $(LDFLAGS) -m32 -o $@ $+ $(LIBS)
 
 $(TARGET_64):	$(OBJS_64) | $(TARGETDIR)/64
 	$(CC) $(CFLAGS) $(LDFLAGS) -m64 -o $@ $+ $(LIBS)
 
-$(OBJS_32): | $(BUILD_32)
-
 $(OBJS_64): | $(BUILD_64)
-
-$(BUILD_32):
-	$(MD) $(BUILD_32)
 
 $(BUILD_64):
 	$(MD) $(BUILD_64)
-
-$(BUILD_32)/%.o:	%.c
-	$(CC)  $(CFLAGS) -m32 -c -o $@ $<
-	@$(CC) $(CFLAGS) -m32 -MM $< | sed -e 's|$*.o|$@|' > $(@:.o=.d)
 
 $(BUILD_64)/%.o:	%.c
 	$(CC)  $(CFLAGS) -m64 -c -o $@ $<
@@ -78,4 +59,4 @@ $(TARGETDIR)/64:
 	$(MD) $(TARGETDIR)/64
 
 clean:
-	$(RM) *~ *.bak $(OBJS_32) $(OBJS_32:.o=.d) $(OBJS_64) $(OBJS_64:.o=.d) $(TARGET_32) $(TARGET_64)
+	$(RM) *~ *.bak $(OBJS_64) $(OBJS_64:.o=.d) $(TARGET_64)

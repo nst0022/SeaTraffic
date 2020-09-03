@@ -84,3 +84,22 @@ The reason for this change is, that Debian will not support Python2 anymore star
 - fix two Mac compiler warnings
 
 I did not change the version number, because the functionality of the plugin has not changed.
+
+Update by nst0022 (2020-09-03)
+----
+
+- remove all 32bit targets in all make files
+
+See [here](https://forums.x-plane.org/index.php?/forums/topic/225473-seatraffic-plugin-for-x1150-vulkan/&do=findComment&comment=2035158) why.
+
+- remove CFLAGS '-mmacosx-version-min=10.4' from Makefile.mac
+
+This restriction appears to be overdone, see [here](https://forums.x-plane.org/index.php?/forums/topic/225473-seatraffic-plugin-for-x1150-vulkan/&do=findComment&comment=2035129) why.
+
+- set XPSDK303 in all make files
+
+This is the most recent SDK version for x11.50, which replaced XPSDK302.
+
+I have kept the install targets in all make files, which currently point to X-Plane 10, as placeholders for users, who want to adjust them to their own needs.
+
+I did not change the version number, because the functionality of the plugin has not changed.
