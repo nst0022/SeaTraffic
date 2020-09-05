@@ -179,7 +179,9 @@ typedef struct active_route_t
     double altmsl;		/* Altitude */
     XPLMProbeRef ref_probe;	/* Terrain probe */
     XPLMDrawInfo_t drawinfo;	/* Where to draw the ship */
-    XPLMInstanceRef * instance_ref; // nst0022 new field
+    XPLMInstanceRef * instance_ref_ship; // nst0022 new field
+    XPLMInstanceRef * instance_ref_wake; // nst0022 2.2 new field
+    int               set_pos_once_wake; // nst0022 new field
 } active_route_t;
 
 /* globals */

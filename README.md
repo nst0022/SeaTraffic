@@ -103,3 +103,13 @@ This is the most recent SDK version for x11.50, which replaced XPSDK302.
 I have kept the install targets in all make files, which currently point to X-Plane 10, as placeholders for users, who want to adjust them to their own needs.
 
 I did not change the version number, because the functionality of the plugin has not changed.
+
+Update by nst0022 (2020-09-05)
+----
+
+Version 2.2
+
+- fix wake problem (workaround)
+
+Wakes are risen now 40 cm above their calculated level. This is a medium value, some ships need more, some ships need less, or even nothing, but all ships I visited during testing had now visible wakes, even if some are slightly distorted. All in all, this appears to be a tolerable compromise.
+
