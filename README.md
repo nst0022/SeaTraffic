@@ -113,3 +113,14 @@ Version 2.2
 
 Wakes are risen now 40 cm above their calculated level. This is a medium value, some ships need more, some ships need less, or even nothing, but all ships I visited during testing had now visible wakes, even if some are slightly distorted. All in all, this appears to be a tolerable compromise.
 
+Update by nst0022 (2020-09-09)
+----
+
+Bugfix release, minor changes.
+
+Version 2.3
+
+- do not draw inactive routes on Map anymore
+- remove performance sort, because we do not draw directly anymore
+- remove rendering options, that used a sim/private/ dataref, which is generally deprecated
+

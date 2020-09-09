@@ -68,7 +68,8 @@ const ship_t ships[ship_kind_count] =
 
 
 static XPLMDataRef ref_view_x, ref_view_y, ref_view_z, ref_view_h;
-static XPLMDataRef ref_plane_lat, ref_plane_lon, ref_night, ref_monotonic, ref_renopt=0, ref_rentype;
+//static XPLMDataRef ref_plane_lat, ref_plane_lon, ref_night, ref_monotonic, ref_renopt=0, ref_rentype;  // nst0022 2.3
+  static XPLMDataRef ref_plane_lat, ref_plane_lon, ref_night, ref_monotonic,               ref_rentype;  // nst0022 2.3
 static XPLMObjectRef wake_ref_big, wake_ref_med, wake_ref_sml;
 //static float last_frame=0;		/* last time we recalculated */
 static int done_init=0, need_recalc=1;
@@ -362,7 +363,7 @@ static void recalc(void)
             a->instance_ref_wake = XPLMCreateInstance(wake_ref_tmp, drefs);
             // nst0022 2.2 end
         }
-        active_route_sort(&active_routes, active_n);	/* Sort active routes by object name for more efficient drawing */
+        //active_route_sort(&active_routes, active_n); // Sort active routes by object name for more efficient drawing // nst0022 2.3
     }
     route_list_free(&candidates);
 }
@@ -1001,7 +1002,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, long inMessage, void 
             return;	/* Exit before setting up menus & callbacks */
 
         /* Finish setup */
-        ref_renopt = XPLMFindDataRef("sim/private/controls/reno/draw_objs_06");	/* v10+ */
+        //ref_renopt = XPLMFindDataRef("sim/private/controls/reno/draw_objs_06");	/* v10+ */ // nst0022 2.3
         XPLMEnableFeature("XPLM_WANTS_REFLECTIONS", 1);
         //XPLMRegisterDrawCallback(drawships, xplm_Phase_Objects, 1, NULL);		/* Before other 3D objects */ // nst0022
         XPLMRegisterFlightLoopCallback(drawships,                                                           // nst0022
@@ -1019,16 +1020,16 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, long inMessage, void 
         need_recalc = 1;
     }
 
-    if (ref_renopt)		/* change to rendering options causes SCENERY_LOADED */
-    {
-        int new_active_max = XPLMGetDatai(ref_renopt) * RENDERING_SCALE;
-        if (new_active_max > ACTIVE_MAX) { new_active_max = ACTIVE_MAX; }
-        if (active_max != new_active_max)
-        {
-            active_max = new_active_max;
-            need_recalc = 1;
-        }
-    }
+    //if (ref_renopt)		/* change to rendering options causes SCENERY_LOADED */ // nst0022 2.3
+    //{
+    //    int new_active_max = XPLMGetDatai(ref_renopt) * RENDERING_SCALE;
+    //    if (new_active_max > ACTIVE_MAX) { new_active_max = ACTIVE_MAX; }
+    //    if (active_max != new_active_max)
+    //    {
+    //        active_max = new_active_max;
+    //        need_recalc = 1;
+    //    }
+    //}
 }
 
 //---------
@@ -1116,9 +1117,10 @@ void draw_markings( XPLMMapLayerID        layerID,
     return;
   }
 
-  route_list_t  * route_list;
-  int             i,
-                  j;
+  // nst022 2.3
+  active_route_t  * a = active_routes; // first of active routes
+  float             x,
+                    y;
 
   //---------------
   // draw the lines
@@ -1149,34 +1151,21 @@ void draw_markings( XPLMMapLayerID        layerID,
   //glLineStipple(1, 0xc6c6);   // define dashed line: 16 "pixels", 4 x (2 on, 2 off)
   //glEnable(GL_LINE_STIPPLE);  // use dashed line
 
-  for   (i = current_tile.south - TILE_RANGE; i <= current_tile.south + TILE_RANGE; i++)
+  // nst022 2.3
+  while (a != NULL)
   {
-    for (j = current_tile.west  - TILE_RANGE; j <= current_tile.west  + TILE_RANGE; j++)
+    glBegin(GL_LINE_STRIP);
+
+    for (int k = 0; k < a->route->pathlen; k++)
     {
-      route_list = getroutesbytile(i, j);
+		  XPLMMapProject(projectionID, a->route->path[k].lat, a->route->path[k].lon, &x, &y);
 
-      while (route_list)
-      {
-        route_t * route = route_list->route;
-        int       k;
-
-        glBegin(GL_LINE_STRIP);
-
-        for (k = 0; k < route->pathlen; k++)
-        {
-          float x,
-                y;
-
-			    XPLMMapProject(projectionID, route->path[k].lat, route->path[k].lon, &x, &y);
-
-          glVertex3f(x, y, 0.0f);
-        }
-
-        glEnd();
-
-        route_list = route_list->next;
-      }
+      glVertex3f(x, y, 0.0f);
     }
+
+    glEnd();
+
+    a = a->next;
   }
 }
 

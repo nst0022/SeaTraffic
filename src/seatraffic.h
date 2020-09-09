@@ -203,7 +203,7 @@ active_route_t *active_route_get(active_route_t *active_routes, int n);
 active_route_t *active_route_get_byroute(active_route_t *active_routes, route_t *route);
 void active_route_pop(active_route_t **active_routes, int n);
 int active_route_length(active_route_t *active_routes);
-void active_route_sort(active_route_t **active_routes, int active_n);
+//void active_route_sort(active_route_t **active_routes, int active_n); // nst0022 2.3
 
 int models_init();
 ship_models_t *models_for_tile(int south, int west);
