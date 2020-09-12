@@ -124,3 +124,25 @@ Version 2.3
 - remove performance sort, because we do not draw directly anymore
 - remove rendering options, that used a sim/private/ dataref, which is generally deprecated
 
+Status quo by nst0022 (2020-09-12)
+----
+
+- as of version 2.3, the plugin runs under 64-bit Linux and 64-bit Mac
+- there has been no feedback yet from a 64-bit Windows user
+
+Needs to be investigated:
+
+- the plugin picks randomely a subset of the available routes for the active region
+- it is unclear why and if that should be changed
+
+See [this](https://forums.x-plane.org/index.php?/forums/topic/225473-seatraffic-plugin-for-x1150-vulkan/) thread for a history on how this fork evolved
+
+The plugin has currently no owner
+
+A potential volunteer needs to:
+
+- have a thorough understanding of the inner workings of the plugin
+- have a thorough understanding of the X-Plane API
+- be able to develop for three platforms (Windows, Mac, Linux)
+
+This fork has now been frozen
